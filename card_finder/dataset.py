@@ -7,8 +7,8 @@ from PIL import Image
 
 class CardImgGenerator(object):
     def __init__(self):
-        self.img_size = (800, 600)
-        self.card_width_range = (200, 400)
+        self.img_size = (600, 450)
+        self.card_width_range = (100, 300)
         self.amount = 10000
 
         self.backgrounds_dir = 'card_finder/src_images/backgrounds/'
@@ -44,7 +44,7 @@ class CardImgGenerator(object):
 
         result = Image.alpha_composite(bg, card)
         result = result.convert('RGB')
-        borders = (-x, -y, card.width, card.height)
+        borders = (-x, -y, card_w, card_h)
 
         return result, borders
 
