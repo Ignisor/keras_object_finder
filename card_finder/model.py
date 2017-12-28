@@ -61,8 +61,8 @@ class CardFinder(object):
         train_amount = int(data_amount*0.8)
         test_amount = int(data_amount*0.2)
 
-        train_batch = self.dataset_provider.get_batch()
-        test_batch = self.dataset_provider.get_batch()
+        train_batch = self.dataset_provider.get_generator()
+        test_batch = self.dataset_provider.get_generator()
 
         result = self.model.fit_generator(
             train_batch,

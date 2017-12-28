@@ -17,13 +17,18 @@ class CardImgGenerator(object):
         self.cards_dir = 'card_finder/src_images/cards/'
 
     def get_batch(self, amount=None):
-        return self.generate()
+        imgs = np.zeros((amount, self.input_shape[1], self.input_shape[0], 3))
+        borders = np.zeros((amount, 4))
 
-    def generate(self):
-        i = 0
+        for i in range(amount):
+            img, border = self.generate_img()
+            imgs[i] = img
+            borders[i] = border
+
+        return imgs, borders
+
+    def get_generator(self):
         while True:
-            i+=1
-
             img, border = self.generate_img()
             img = img.reshape(-1, *self.input_shape)
 
@@ -48,7 +53,7 @@ class CardImgGenerator(object):
 
         result = Image.alpha_composite(bg, card)
         result = result.convert('RGB')
-        result = np.array(result.getdata(), np.uint8)
+        result = np.array(result.getdata(), np.uint8).reshape(result.size[1], result.size[0], 3)
         borders = np.array((-x, -y, card_w, card_h))
 
         return result, borders
