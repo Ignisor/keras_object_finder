@@ -11,22 +11,28 @@ class CardImgGenerator(object):
         self.card_width_range = (100, 300)
         self.amount = 10000
 
+        self.input_shape = (self.img_size[0], self.img_size[1], 3)
+
         self.backgrounds_dir = 'card_finder/src_images/backgrounds/'
         self.cards_dir = 'card_finder/src_images/cards/'
 
     def get_batch(self, amount=None):
-        return self.generate(amount or self.amount)
+        return self.generate()
 
-    def generate(self, amount):
-        imgs = np.zeros((amount, self.img_size[1], self.img_size[0], 3))
-        borders = np.zeros((amount, 4))
+    def generate(self):
+        i = 0
+        while True:
+            i+=1
 
-        for i in range(amount):
             img, border = self.generate_img()
-            imgs[i] = img
-            borders[i] = border
+            img = img.reshape(-1, *self.input_shape)
 
-        return imgs, borders
+            border = border / (*self.img_size, *self.img_size)
+            border = border.reshape(-1, 4)
+
+            print(self, i)
+
+            yield img, border
 
     def generate_img(self):
         bg = self.get_background_img()
@@ -44,7 +50,8 @@ class CardImgGenerator(object):
 
         result = Image.alpha_composite(bg, card)
         result = result.convert('RGB')
-        borders = (-x, -y, card_w, card_h)
+        result = np.array(result.getdata(), np.uint8)
+        borders = np.array((-x, -y, card_w, card_h))
 
         return result, borders
 

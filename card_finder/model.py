@@ -58,16 +58,19 @@ class CardFinder(object):
         return f'saved/{self.__class__.__name__}.h5'
 
     def train(self, data_amount, epochs):
-        batch_x, batch_y = self.dataset_provider.get_batch(data_amount)
-        batch_x = batch_x.reshape(-1, *self.input_shape)
-        batch_y = batch_y / (*self.img_size, *self.img_size)
+        train_amount = int(data_amount*0.8)
+        test_amount = int(data_amount*0.2)
 
-        divider = int(0.8 * data_amount)
-        train_x = batch_x[:divider]
-        test_x = batch_x[divider:]
-        train_y = batch_y[:divider]
-        test_y = batch_y[divider:]
+        train_batch = self.dataset_provider.get_batch()
+        test_batch = self.dataset_provider.get_batch()
 
-        result = self.model.fit(train_x, train_y, epochs=epochs, validation_data=(test_x, test_y), verbose=2)
+        result = self.model.fit_generator(
+            train_batch,
+            steps_per_epoch=train_amount,
+            epochs=epochs,
+            validation_data=test_batch,
+            validation_steps=test_amount,
+            verbose=2
+        )
 
         return result
