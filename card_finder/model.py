@@ -52,6 +52,4 @@ class CardFinder(object):
 
         result = self.model.fit(train_x, train_y, epochs=epochs, validation_data=(test_x, test_y), verbose=2)
 
-        self.save_weights()
-
         return result
