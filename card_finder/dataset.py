@@ -30,8 +30,6 @@ class CardImgGenerator(object):
             border = border / (*self.img_size, *self.img_size)
             border = border.reshape(-1, 4)
 
-            print(self, i)
-
             yield img, border
 
     def generate_img(self):
