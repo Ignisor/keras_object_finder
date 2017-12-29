@@ -1,6 +1,5 @@
 from keras.models import Sequential
-from keras import layers
-import numpy as np
+from keras import layers, optimizers
 
 from .dataset import CardImgGenerator
 
@@ -11,16 +10,35 @@ class CardFinder(object):
         self.dataset_provider = CardImgGenerator()
         self.img_size = (600, 450)
 
-        self.input_dim = self.img_size[0] * self.img_size[1] * 3
+        self.input_shape = (self.img_size[0], self.img_size[1], 3)
 
     def init_model(self):
         self.model = Sequential([
-            layers.Dense(200, input_dim=self.input_dim),
+            layers.Conv2D(32, (3, 3), padding='same', input_shape=self.input_shape),
             layers.Activation('relu'),
-            layers.Dropout(0.2),
-            layers.Dense(4)
+            layers.Conv2D(32, (3, 3)),
+            layers.Activation('relu'),
+            layers.MaxPooling2D(pool_size=(2, 2)),
+            layers.Dropout(0.25),
+
+            layers.Conv2D(32, (3, 3), padding='same'),
+            layers.Activation('relu'),
+            layers.Conv2D(32, (3, 3)),
+            layers.Activation('relu'),
+            layers.MaxPooling2D(pool_size=(2, 2)),
+            layers.Dropout(0.25),
+
+            layers.Flatten(),
+            layers.Dense(512),
+            layers.Activation('relu'),
+            layers.Dropout(0.5),
+
+            layers.Dense(4),
+            layers.Activation('softmax')
         ])
-        self.model.compile('adadelta', 'mse')
+
+        opt = optimizers.rmsprop(lr=1e-4, decay=1e-6)
+        self.model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
 
         self.load_weights()
 
@@ -40,16 +58,19 @@ class CardFinder(object):
         return f'saved/{self.__class__.__name__}.h5'
 
     def train(self, data_amount, epochs):
-        batch_x, batch_y = self.dataset_provider.get_batch(data_amount)
-        batch_x = batch_x.reshape(-1, self.input_dim)
-        batch_y = batch_y / (*self.img_size, *self.img_size)
+        train_amount = int(data_amount*0.8)
+        test_amount = int(data_amount*0.2)
 
-        divider = int(0.8 * data_amount)
-        train_x = batch_x[:divider]
-        test_x = batch_x[divider:]
-        train_y = batch_y[:divider]
-        test_y = batch_y[divider:]
+        train_batch = self.dataset_provider.get_generator()
+        test_batch = self.dataset_provider.get_generator()
 
-        result = self.model.fit(train_x, train_y, epochs=epochs, validation_data=(test_x, test_y), verbose=2)
+        result = self.model.fit_generator(
+            train_batch,
+            steps_per_epoch=train_amount,
+            epochs=epochs,
+            validation_data=test_batch,
+            validation_steps=test_amount,
+            verbose=2
+        )
 
         return result

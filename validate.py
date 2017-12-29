@@ -8,7 +8,7 @@ if __name__ == '__main__':
     sf.init_model()
 
     tx, ty = sf.dataset_provider.get_batch(10)
-    py = sf.model.predict(tx.reshape(-1, sf.input_dim))
+    py = sf.model.predict(tx)
     pb = py * tuple((*sf.img_size, *sf.img_size) for i in range(len(py)))
 
     for i, img in enumerate(tx):
