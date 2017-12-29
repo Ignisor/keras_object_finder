@@ -17,12 +17,14 @@ class CardImgGenerator(object):
         self.cards_dir = 'card_finder/src_images/cards/'
 
     def get_batch(self, amount=None):
-        imgs = np.zeros((amount, self.input_shape[1], self.input_shape[0], 3))
+        imgs = np.zeros((amount, self.input_shape[0], self.input_shape[1], 3))
         borders = np.zeros((amount, 4))
 
         for i in range(amount):
             img, border = self.generate_img()
-            imgs[i] = img
+            imgs[i] = img.reshape(-1, *self.input_shape)
+
+            border = border / (*self.img_size, *self.img_size)
             borders[i] = border
 
         return imgs, borders
