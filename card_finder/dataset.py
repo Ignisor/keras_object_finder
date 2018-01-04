@@ -10,10 +10,12 @@ class CardImgGenerator(object):
         self.img_size = (128, 128)
         self.back_size = (600, 450)
         self.card_width_range = (100, 300)
+        self.mask_shape = (10, 10)
+
         self.amount = 10000
 
         self.input_shape = (self.img_size[0], self.img_size[1], 3)
-        self.output_shape = (10, 10)
+        self.output_shape = (100, )
 
         self.backgrounds_dir = 'card_finder/src_images/backgrounds/'
         self.cards_dir = 'card_finder/src_images/cards/'
@@ -26,7 +28,7 @@ class CardImgGenerator(object):
             img, mask = self.generate_img()
             imgs[i] = img.reshape(-1, *self.input_shape)
 
-            masks[i] = mask
+            masks[i] = mask.reshape(self.output_shape)
 
         return imgs, masks
 
@@ -34,7 +36,7 @@ class CardImgGenerator(object):
         while True:
             img, mask = self.generate_img()
             img = img.reshape(-1, *self.input_shape)
-            mask = mask.reshape(-1, *mask.shape)
+            mask = mask.reshape(-1, *self.output_shape)
 
             yield img, mask
 
@@ -57,7 +59,7 @@ class CardImgGenerator(object):
         img = img.resize(self.img_size)
         result = np.array(img.getdata(), np.uint8).reshape(img.size[1], img.size[0], 3)
 
-        mask = np.zeros(self.output_shape)
+        mask = np.zeros(self.mask_shape)
         card_center = (offset[0] + (card_w // 2), offset[1] + (card_h // 2))
         card_center = (card_center[0]/self.back_size[0], card_center[1]/self.back_size[1])
         mask[round(card_center[1] * 10)][round(card_center[0] * 10)] = 1

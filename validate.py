@@ -14,8 +14,8 @@ if __name__ == '__main__':
 
     for i in range(SAMPLES):
         img = Image.fromarray(np.uint8(tx[i])).convert('RGBA')
-        mask = py[i]
-        valid_mask = ty[i]
+        mask = py[i].reshape(10, 10)
+        valid_mask = ty[i].reshape(10, 10)
 
         mask_img = np.dstack((
             mask,

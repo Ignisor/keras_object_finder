@@ -38,11 +38,10 @@ class CardFinder(object):
             layers.Dense(self.output_shape[0] * self.output_shape[1]),
             layers.Activation('softmax'),
 
-            layers.Reshape(self.output_shape)
+            # layers.Reshape(self.output_shape)
         ])
 
-        opt = optimizers.rmsprop(lr=1e-4, decay=1e-6)
-        self.model.compile(loss='categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
+        self.model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['categorical_accuracy'])
 
         self.load_weights()
 
