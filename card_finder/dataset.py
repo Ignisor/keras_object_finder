@@ -7,37 +7,36 @@ from PIL import Image
 
 class CardImgGenerator(object):
     def __init__(self):
-        self.img_size = (600, 450)
+        self.img_size = (128, 128)
+        self.back_size = (600, 450)
         self.card_width_range = (100, 300)
         self.amount = 10000
 
         self.input_shape = (self.img_size[0], self.img_size[1], 3)
+        self.output_shape = (10, 10)
 
         self.backgrounds_dir = 'card_finder/src_images/backgrounds/'
         self.cards_dir = 'card_finder/src_images/cards/'
 
     def get_batch(self, amount=None):
         imgs = np.zeros((amount, self.input_shape[0], self.input_shape[1], 3))
-        borders = np.zeros((amount, 4))
+        masks = np.zeros((amount, *self.output_shape))
 
         for i in range(amount):
-            img, border = self.generate_img()
+            img, mask = self.generate_img()
             imgs[i] = img.reshape(-1, *self.input_shape)
 
-            border = border / (*self.img_size, *self.img_size)
-            borders[i] = border
+            masks[i] = mask
 
-        return imgs, borders
+        return imgs, masks
 
     def get_generator(self):
         while True:
-            img, border = self.generate_img()
+            img, mask = self.generate_img()
             img = img.reshape(-1, *self.input_shape)
+            mask = mask.reshape(-1, *mask.shape)
 
-            border = border / (*self.img_size, *self.img_size)
-            border = border.reshape(-1, 4)
-
-            yield img, border
+            yield img, mask
 
     def generate_img(self):
         bg = self.get_background_img()
@@ -48,25 +47,29 @@ class CardImgGenerator(object):
 
         card = card.resize((card_w, card_h))
 
-        x = 0 - random.randint(0, bg.width - card.width)
-        y = 0 - random.randint(0, bg.height - card.height)
+        offset = (
+            random.randint(0, bg.width - card.width),
+            random.randint(0, bg.height - card.height)
+        )
 
-        card = card.transform(bg.size, Image.EXTENT, (x, y, bg.width + x, bg.height + y))
+        img = bg
+        img.paste(card, offset, card)
+        img = img.resize(self.img_size)
+        result = np.array(img.getdata(), np.uint8).reshape(img.size[1], img.size[0], 3)
 
-        result = Image.alpha_composite(bg, card)
-        result = result.convert('RGB')
-        result = np.array(result.getdata(), np.uint8).reshape(result.size[1], result.size[0], 3)
-        borders = np.array((-x, -y, card_w, card_h))
+        mask = np.zeros(self.output_shape)
+        card_center = (offset[0] + (card_w // 2), offset[1] + (card_h // 2))
+        card_center = (card_center[0]/self.back_size[0], card_center[1]/self.back_size[1])
+        mask[round(card_center[1] * 10)][round(card_center[0] * 10)] = 1
 
-        return result, borders
+        return result, mask
 
     def get_background_img(self):
         fname = random.choice(os.listdir(self.backgrounds_dir))
         fpath = self.backgrounds_dir + fname
 
         img = Image.open(fpath)
-        img = img.resize(self.img_size)
-        img = img.convert('RGBA')
+        img = img.resize(self.back_size)
 
         return img
 

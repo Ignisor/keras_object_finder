@@ -8,9 +8,11 @@ class CardFinder(object):
     def __init__(self):
         self.model = None
         self.dataset_provider = CardImgGenerator()
-        self.img_size = (600, 450)
+        self.img_size = (128, 128)
 
         self.input_shape = (self.img_size[0], self.img_size[1], 3)
+
+        self.output_shape = (10, 10)
 
     def init_model(self):
         self.model = Sequential([
@@ -33,8 +35,10 @@ class CardFinder(object):
             layers.Activation('relu'),
             layers.Dropout(0.5),
 
-            layers.Dense(4),
-            layers.Activation('softmax')
+            layers.Dense(self.output_shape[0] * self.output_shape[1]),
+            layers.Activation('softmax'),
+
+            layers.Reshape(self.output_shape)
         ])
 
         opt = optimizers.rmsprop(lr=1e-4, decay=1e-6)
