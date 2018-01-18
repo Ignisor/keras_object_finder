@@ -1,5 +1,5 @@
 from keras.models import Sequential
-from keras import layers, optimizers
+from keras import layers, constraints
 
 from .dataset import CardImgGenerator
 
@@ -16,27 +16,22 @@ class CardFinder(object):
 
     def init_model(self):
         self.model = Sequential([
-            layers.Conv2D(32, (3, 3), padding='same', input_shape=self.input_shape),
-            layers.Activation('relu'),
-            layers.Conv2D(32, (3, 3)),
-            layers.Activation('relu'),
+            layers.Conv2D(32, (5, 5), padding='same', input_shape=self.input_shape, activation='relu',
+                          data_format="channels_last"),
+            layers.Conv2D(32, (5, 5), activation='relu'),
             layers.MaxPooling2D(pool_size=(2, 2)),
             layers.Dropout(0.25),
 
-            layers.Conv2D(32, (3, 3), padding='same'),
-            layers.Activation('relu'),
-            layers.Conv2D(32, (3, 3)),
-            layers.Activation('relu'),
+            layers.Conv2D(32, (5, 5), padding='same', activation='relu'),
+            layers.Conv2D(32, (5, 5), activation='relu'),
             layers.MaxPooling2D(pool_size=(2, 2)),
             layers.Dropout(0.25),
 
             layers.Flatten(),
-            layers.Dense(512),
-            layers.Activation('relu'),
+            layers.Dense(512, activation='relu'),
             layers.Dropout(0.5),
 
-            layers.Dense(self.output_shape[0] * self.output_shape[1]),
-            layers.Activation('softmax'),
+            layers.Dense(self.output_shape[0] * self.output_shape[1], activation='softmax'),
 
             # layers.Reshape(self.output_shape)
         ])

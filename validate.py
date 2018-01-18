@@ -3,7 +3,7 @@ import numpy as np
 
 from card_finder.model import CardFinder
 
-SAMPLES = 2
+SAMPLES = 5
 
 if __name__ == '__main__':
     sf = CardFinder()
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     py = sf.model.predict(tx)
 
     for i in range(SAMPLES):
-        img = Image.fromarray(np.uint8(tx[i])).convert('RGBA')
+        img = Image.fromarray(np.uint8(tx[i] * 255)).convert('RGBA')
         mask = py[i].reshape(10, 10)
         valid_mask = ty[i].reshape(10, 10)
 
@@ -21,7 +21,7 @@ if __name__ == '__main__':
             mask,
             np.zeros(mask.shape),
             np.zeros(mask.shape),
-            np.ones(mask.shape) * 0.5 * mask
+            np.ones(mask.shape) * 0.5 * (mask / mask.max())
         ))
         mask_img = Image.fromarray(np.array(mask_img*255, np.uint8))
         mask_img = mask_img.resize(img.size)

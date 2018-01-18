@@ -58,6 +58,7 @@ class CardImgGenerator(object):
         img.paste(card, offset, card)
         img = img.resize(self.img_size)
         result = np.array(img.getdata(), np.uint8).reshape(img.size[1], img.size[0], 3)
+        result = result/255
 
         mask = np.zeros(self.mask_shape)
         card_center = (offset[0] + (card_w // 2), offset[1] + (card_h // 2))
